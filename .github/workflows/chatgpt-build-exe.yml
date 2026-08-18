@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: windows-latest
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - uses: actions/checkout@v5
@@ -38,3 +38,27 @@ jobs:
           name: WandEnhancer-unsigned
           path: WandEnhancer/bin/Release/WandEnhancer.exe
           if-no-files-found: error
+
+      - name: Publish executable to output branch
+        shell: pwsh
+        run: |
+          $builtExe = Join-Path $env:GITHUB_WORKSPACE 'WandEnhancer/bin/Release/WandEnhancer.exe'
+          $tempExe = Join-Path $env:RUNNER_TEMP 'WandEnhancer.exe'
+          Copy-Item $builtExe $tempExe -Force
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin chatgpt-build-output
+          git checkout -B chatgpt-build-output origin/chatgpt-build-output
+
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item $tempExe 'dist/WandEnhancer.exe' -Force
+          git add -f dist/WandEnhancer.exe
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host 'Executable is unchanged; nothing to publish.'
+            exit 0
+          }
+
+          git commit -m 'build: publish WandEnhancer.exe'
+          git push origin chatgpt-build-output
