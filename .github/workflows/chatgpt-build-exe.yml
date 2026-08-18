@@ -1,3 +1,4 @@
+# Temporary workflow used only for this build.
 name: ChatGPT Build WandEnhancer EXE
 
 on:
