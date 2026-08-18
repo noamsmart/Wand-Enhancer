@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - chatgpt-build-exe
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build:
